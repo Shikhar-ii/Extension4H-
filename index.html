@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4H Summer Camp Password Challenge</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff;
+      min-height: 100vh;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #cbd5e1;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .level-title {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: #facc15;
+    }
+
+    .hint {
+      color: #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .check-btn {
+      background: #22c55e;
+      color: white;
+    }
+
+    .hint-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .extra-hint {
+      color: #93c5fd;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .success {
+      color: #4ade80;
+    }
+
+    .error {
+      color: #f87171;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #cbd5e1;
+    }
+
+    .score-board {
+      text-align: center;
+      font-size: 1.1rem;
+      margin-bottom: 25px;
+      color: #fde68a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>4H Summer Camp Password Challenge</h1>
+    <p class="subtitle">Level 1 is easy and Level 5 is hard. Solve each password using hints.</p>
+    <div class="score-board">Solved: <span id="score">0</span> / 5</div>
+
+    <div class="card">
+      <div class="level-title">Level 1</div>
+      <div class="hint">Hint: This is the most common weak password in the world.</div>
+      <input type="text" id="pass1" placeholder="Enter password for Level 1" />
+      <button class="check-btn" onclick="checkPassword(1)">Check</button>
+      <button class="hint-btn" onclick="showHint(1)">More Hint</button>
+      <div class="extra-hint" id="hint1">It is six numbers in order.</div>
+      <div class="result" id="result1"></div>
+    </div>
+
+    <div class="card">
+      <div class="level-title">Level 2</div>
+      <div class="hint">Hint: 12 × 12 = ?</div>
+      <input type="text" id="pass2" placeholder="Enter password for Level 2" />
+      <button class="check-btn" onclick="checkPassword(2)">Check</button>
+      <button class="hint-btn" onclick="showHint(2)">More Hint</button>
+      <div class="extra-hint" id="hint2">It is a 3-digit number from multiplication.</div>
+      <div class="result" id="result2"></div>
+    </div>
+
+    <div class="card">
+      <div class="level-title">Level 3</div>
+      <div class="hint">Hint: The month of camp is June, and the year is 2026. Join them together.</div>
+      <input type="text" id="pass3" placeholder="Enter password for Level 3" />
+      <button class="check-btn" onclick="checkPassword(3)">Check</button>
+      <button class="hint-btn" onclick="showHint(3)">More Hint</button>
+      <div class="extra-hint" id="hint3">Use month number first, then the year.</div>
+      <div class="result" id="result3"></div>
+    </div>
+
+    <div class="card">
+      <div class="level-title">Level 4</div>
+      <div class="hint">Hint: First 5 prime numbers together.</div>
+      <input type="text" id="pass4" placeholder="Enter password for Level 4" />
+      <button class="check-btn" onclick="checkPassword(4)">Check</button>
+      <button class="hint-btn" onclick="showHint(4)">More Hint</button>
+      <div class="extra-hint" id="hint4">2, 3, 5, 7, and 11</div>
+      <div class="result" id="result4"></div>
+    </div>
+
+    <div class="card">
+      <div class="level-title">Level 5</div>
+      <div class="hint">Hint: Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13... Use the first 6 numbers together.</div>
+      <input type="text" id="pass5" placeholder="Enter password for Level 5" />
+      <button class="check-btn" onclick="checkPassword(5)">Check</button>
+      <button class="hint-btn" onclick="showHint(5)">More Hint</button>
+      <div class="extra-hint" id="hint5">Write them in one line without commas or spaces.</div>
+      <div class="result" id="result5"></div>
+    </div>
+
+    <div class="footer">
+      Made for educational use in 4H Summer Camp
+    </div>
+  </div>
+
+  <script>
+    const passwords = {
+      1: "123456",
+      2: "144",
+      3: "62026",
+      4: "235711",
+      5: "112358"
+    };
+
+    const solvedLevels = new Set();
+
+    function checkPassword(level) {
+      const input = document.getElementById(`pass${level}`).value.trim();
+      const result = document.getElementById(`result${level}`);
+
+      if (input === passwords[level]) {
+        result.textContent = "Correct! Level solved.";
+        result.className = "result success";
+
+        solvedLevels.add(level);
+        document.getElementById("score").textContent = solvedLevels.size;
+      } else {
+        result.textContent = "Wrong password. Try again.";
+        result.className = "result error";
+      }
+    }
+
+    function showHint(level) {
+      const hint = document.getElementById(`hint${level}`);
+      hint.style.display = "block";
+    }
+  </script>
+</body>
+</html>
