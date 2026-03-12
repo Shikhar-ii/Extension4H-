@@ -19,7 +19,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
 
@@ -32,7 +32,22 @@
     .subtitle {
       text-align: center;
       color: #cbd5e1;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
+    }
+
+    .top-box {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
     }
 
     .card {
@@ -73,6 +88,17 @@
       font-size: 1rem;
       font-weight: bold;
       margin-right: 10px;
+      margin-top: 5px;
+    }
+
+    .start-btn {
+      background: #22c55e;
+      color: white;
+    }
+
+    .save-btn {
+      background: #a855f7;
+      color: white;
     }
 
     .check-btn {
@@ -113,16 +139,76 @@
     .score-board {
       text-align: center;
       font-size: 1.1rem;
-      margin-bottom: 25px;
+      margin-bottom: 10px;
       color: #fde68a;
+    }
+
+    .timer-box {
+      margin-top: 10px;
+      line-height: 1.8;
+      color: #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    th {
+      background: rgba(255,255,255,0.08);
+      color: #facc15;
+    }
+
+    .small-text {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 800px) {
+      .top-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>4H Summer Camp Password Challenge</h1>
-    <p class="subtitle">Level 1 is easy and Level 5 is hard. Solve each password using hints.</p>
-    <div class="score-board">Solved: <span id="score">0</span> / 5</div>
+    <p class="subtitle">Solve all 5 levels. Fastest student finishes first.</p>
+
+    <div class="top-box">
+      <div class="top-row">
+        <div>
+          <h3>Student Info</h3>
+          <input type="text" id="studentName" placeholder="Enter student name" />
+          <button class="start-btn" onclick="startGame()">Start Challenge</button>
+          <button class="save-btn" onclick="saveResult()">Save Result</button>
+
+          <div class="timer-box">
+            <div><strong>Status:</strong> <span id="status">Not started</span></div>
+            <div><strong>Start Time:</strong> <span id="startTime">--</span></div>
+            <div><strong>End Time:</strong> <span id="endTime">--</span></div>
+            <div><strong>Total Time:</strong> <span id="totalTime">--</span></div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Live Progress</h3>
+          <div class="score-board">Solved: <span id="score">0</span> / 5</div>
+          <div class="small-text">When all 5 are solved, end time will be recorded automatically.</div>
+        </div>
+      </div>
+    </div>
 
     <div class="card">
       <div class="level-title">Level 1</div>
@@ -166,12 +252,32 @@
 
     <div class="card">
       <div class="level-title">Level 5</div>
-      <div class="hint">Hint: Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13... Use the first 6 numbers together.</div>
+      <div class="hint">Hint: Fibonacci sequence: 1, 1, 2, 3, 5, 8. Put them together.</div>
       <input type="text" id="pass5" placeholder="Enter password for Level 5" />
       <button class="check-btn" onclick="checkPassword(5)">Check</button>
       <button class="hint-btn" onclick="showHint(5)">More Hint</button>
-      <div class="extra-hint" id="hint5">Write them in one line without commas or spaces.</div>
+      <div class="extra-hint" id="hint5">Write them in one line without spaces.</div>
       <div class="result" id="result5"></div>
+    </div>
+
+    <div class="card">
+      <h2>Ranking Board</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Total Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr>
+            <td colspan="5">No results yet</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="footer">
@@ -188,18 +294,77 @@
       5: "112358"
     };
 
-    const solvedLevels = new Set();
+    let solvedLevels = new Set();
+    let started = false;
+    let finished = false;
+    let startTimestamp = null;
+    let endTimestamp = null;
+
+    function formatDateTime(date) {
+      return date.toLocaleTimeString();
+    }
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes} min ${seconds} sec`;
+    }
+
+    function startGame() {
+      const name = document.getElementById("studentName").value.trim();
+      if (!name) {
+        alert("Please enter student name first.");
+        return;
+      }
+
+      solvedLevels = new Set();
+      started = true;
+      finished = false;
+      startTimestamp = new Date();
+      endTimestamp = null;
+
+      document.getElementById("score").textContent = 0;
+      document.getElementById("status").textContent = "Running";
+      document.getElementById("startTime").textContent = formatDateTime(startTimestamp);
+      document.getElementById("endTime").textContent = "--";
+      document.getElementById("totalTime").textContent = "--";
+
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`pass${i}`).value = "";
+        document.getElementById(`result${i}`).textContent = "";
+        document.getElementById(`hint${i}`).style.display = "none";
+      }
+    }
 
     function checkPassword(level) {
+      if (!started) {
+        alert("Click Start Challenge first.");
+        return;
+      }
+
+      if (finished) {
+        alert("Challenge already finished. Save result or start again.");
+        return;
+      }
+
       const input = document.getElementById(`pass${level}`).value.trim();
       const result = document.getElementById(`result${level}`);
 
       if (input === passwords[level]) {
         result.textContent = "Correct! Level solved.";
         result.className = "result success";
-
         solvedLevels.add(level);
         document.getElementById("score").textContent = solvedLevels.size;
+
+        if (solvedLevels.size === 5) {
+          finished = true;
+          endTimestamp = new Date();
+          document.getElementById("status").textContent = "Finished";
+          document.getElementById("endTime").textContent = formatDateTime(endTimestamp);
+          document.getElementById("totalTime").textContent =
+            formatDuration(endTimestamp - startTimestamp);
+        }
       } else {
         result.textContent = "Wrong password. Try again.";
         result.className = "result error";
@@ -207,9 +372,61 @@
     }
 
     function showHint(level) {
-      const hint = document.getElementById(`hint${level}`);
-      hint.style.display = "block";
+      document.getElementById(`hint${level}`).style.display = "block";
     }
+
+    function saveResult() {
+      const name = document.getElementById("studentName").value.trim();
+
+      if (!name) {
+        alert("Enter student name first.");
+        return;
+      }
+
+      if (!started || !finished) {
+        alert("Student must finish all 5 levels before saving result.");
+        return;
+      }
+
+      const totalMs = endTimestamp - startTimestamp;
+      const resultData = {
+        name: name,
+        start: formatDateTime(startTimestamp),
+        end: formatDateTime(endTimestamp),
+        totalMs: totalMs,
+        totalText: formatDuration(totalMs)
+      };
+
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      leaderboard.push(resultData);
+      leaderboard.sort((a, b) => a.totalMs - b.totalMs);
+      localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+      renderLeaderboard();
+      alert("Result saved to ranking board.");
+    }
+
+    function renderLeaderboard() {
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      const tbody = document.getElementById("leaderboardBody");
+
+      if (leaderboard.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5">No results yet</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = leaderboard.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.start}</td>
+          <td>${item.end}</td>
+          <td>${item.totalText}</td>
+        </tr>
+      `).join("");
+    }
+
+    renderLeaderboard();
   </script>
 </body>
 </html>
